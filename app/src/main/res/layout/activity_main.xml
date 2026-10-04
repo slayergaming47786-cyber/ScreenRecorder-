@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0F172A" 
+    android:background="@drawable/bg_app_dark" 
     android:fillViewport="true">
 
     <LinearLayout
@@ -11,31 +11,27 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <!-- Top Header Section -->
+        <!-- Top Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:layout_marginBottom="24dp">
-            
-            <!-- Play Icon (Neon Purple) -->
             <TextView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@drawable/bg_rec_btn"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/bg_preset_selected"
                 android:backgroundTint="#8B5CF6"
                 android:gravity="center"
                 android:text="▶"
                 android:textColor="#FFFFFF"
-                android:textSize="20sp"
+                android:textSize="22sp"
                 android:layout_marginEnd="16dp"/>
-                
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
-                
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -43,7 +39,6 @@
                     android:textColor="#FFFFFF"
                     android:textSize="22sp"
                     android:textStyle="bold"/>
-                    
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -53,11 +48,11 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Quick Presets Section (Dark Card) -->
+        <!-- Quick Presets Section (4 Cards) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_floating_glass"
+            android:background="@drawable/bg_card_glass"
             android:orientation="vertical"
             android:padding="16dp"
             android:layout_marginBottom="20dp">
@@ -69,143 +64,118 @@
                 android:textColor="#FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="12dp"/>
+                android:layout_marginBottom="16dp"/>
                 
-            <Spinner
-                android:id="@+id/spinnerPreset"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="#1E293B"
-                android:popupBackground="#1E293B"
-                android:textColor="#FFFFFF"
-                android:entries="@array/preset_options"
-                android:layout_marginBottom="8dp"/>
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="4">
+                
+                <!-- Preset 1 -->
+                <LinearLayout
+                    android:id="@+id/cardLow"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_preset_unselected"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_marginEnd="6dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌱" android:textSize="24sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Low Size" android:textColor="#FFF" android:textSize="10sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="≈ 5MB/min" android:textColor="#A0AABF" android:textSize="8sp"/>
+                </LinearLayout>
+
+                <!-- Preset 2 -->
+                <LinearLayout
+                    android:id="@+id/cardMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_preset_unselected"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_marginEnd="6dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎛️" android:textSize="24sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Medium" android:textColor="#FFF" android:textSize="10sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Balanced" android:textColor="#A0AABF" android:textSize="8sp"/>
+                </LinearLayout>
+
+                <!-- Preset 3 -->
+                <LinearLayout
+                    android:id="@+id/cardHigh"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_preset_unselected"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_marginEnd="6dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎮" android:textSize="24sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="High Quality" android:textColor="#FFF" android:textSize="10sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="For Gaming" android:textColor="#A0AABF" android:textSize="8sp"/>
+                </LinearLayout>
+
+                <!-- Preset 4 (Custom - Default Selected) -->
+                <LinearLayout
+                    android:id="@+id/cardCustom"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_preset_selected"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⚙️" android:textSize="24sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Custom" android:textColor="#FFF" android:textSize="10sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Set Manually" android:textColor="#A0AABF" android:textSize="8sp"/>
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- Video Settings Section -->
+        <!-- Video Settings -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_floating_glass"
+            android:background="@drawable/bg_card_glass"
             android:orientation="vertical"
             android:padding="16dp"
             android:layout_marginBottom="20dp">
             
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🎥 Video Settings"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="4dp"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Adjust resolution, bitrate and FPS"
-                android:textColor="#94A3B8"
-                android:textSize="11sp"
-                android:layout_marginBottom="16dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎥 Video Settings" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold" android:layout_marginBottom="16dp"/>
 
-            <!-- Resolution -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="📺 Resolution"
-                android:textColor="#E2E8F0"
-                android:textSize="13sp"
-                android:layout_marginBottom="6dp"/>
-            <Spinner
-                android:id="@+id/spinnerResolution"
-                android:layout_width="match_parent"
-                android:layout_height="45dp"
-                android:background="#1E293B"
-                android:popupBackground="#1E293B"
-                android:textColor="#FFFFFF"
-                android:entries="@array/resolution_options"
-                android:layout_marginBottom="12dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📺 Resolution" android:textColor="#E2E8F0" android:textSize="13sp" android:layout_marginBottom="6dp"/>
+            <Spinner android:id="@+id/spinnerResolution" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/bg_preset_unselected" android:popupBackground="#1E293B" android:textColor="#FFFFFF" android:entries="@array/resolution_options" android:layout_marginBottom="12dp" android:paddingHorizontal="10dp"/>
 
-            <!-- Bitrate -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="📊 Bitrate (Control Size)"
-                android:textColor="#E2E8F0"
-                android:textSize="13sp"
-                android:layout_marginBottom="6dp"/>
-            <Spinner
-                android:id="@+id/spinnerBitrate"
-                android:layout_width="match_parent"
-                android:layout_height="45dp"
-                android:background="#1E293B"
-                android:popupBackground="#1E293B"
-                android:textColor="#FFFFFF"
-                android:entries="@array/bitrate_options"
-                android:layout_marginBottom="12dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📊 Bitrate (Control Size)" android:textColor="#E2E8F0" android:textSize="13sp" android:layout_marginBottom="6dp"/>
+            <Spinner android:id="@+id/spinnerBitrate" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/bg_preset_unselected" android:popupBackground="#1E293B" android:textColor="#FFFFFF" android:entries="@array/bitrate_options" android:layout_marginBottom="12dp" android:paddingHorizontal="10dp"/>
 
-            <!-- FPS -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="📚 FPS (Frames Per Second)"
-                android:textColor="#E2E8F0"
-                android:textSize="13sp"
-                android:layout_marginBottom="6dp"/>
-            <Spinner
-                android:id="@+id/spinnerFps"
-                android:layout_width="match_parent"
-                android:layout_height="45dp"
-                android:background="#1E293B"
-                android:popupBackground="#1E293B"
-                android:textColor="#FFFFFF"
-                android:entries="@array/fps_options"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📚 FPS (Frames Per Second)" android:textColor="#E2E8F0" android:textSize="13sp" android:layout_marginBottom="6dp"/>
+            <Spinner android:id="@+id/spinnerFps" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/bg_preset_unselected" android:popupBackground="#1E293B" android:textColor="#FFFFFF" android:entries="@array/fps_options" android:paddingHorizontal="10dp"/>
         </LinearLayout>
 
-        <!-- Audio Settings Section -->
+        <!-- Audio Settings -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_floating_glass"
+            android:background="@drawable/bg_card_glass"
             android:orientation="vertical"
             android:padding="16dp"
             android:layout_marginBottom="30dp">
-            
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🔊 Audio Setup"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="4dp"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Choose audio source"
-                android:textColor="#94A3B8"
-                android:textSize="11sp"
-                android:layout_marginBottom="12dp"/>
-                
-            <Spinner
-                android:id="@+id/spinnerAudio"
-                android:layout_width="match_parent"
-                android:layout_height="45dp"
-                android:background="#1E293B"
-                android:popupBackground="#1E293B"
-                android:textColor="#FFFFFF"
-                android:entries="@array/audio_options"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔊 Audio Setup" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold" android:layout_marginBottom="16dp"/>
+            <Spinner android:id="@+id/spinnerAudio" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/bg_preset_unselected" android:popupBackground="#1E293B" android:textColor="#FFFFFF" android:entries="@array/audio_options" android:paddingHorizontal="10dp"/>
         </LinearLayout>
 
         <!-- Glow Start Button -->
         <Button
             android:id="@+id/btnStart"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="▶  SHOW FLOATING BUTTON"
+            android:layout_height="65dp"
+            android:text="▶ SHOW FLOATING BUTTON"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:backgroundTint="#3B82F6"
+            android:background="@drawable/bg_btn_start_glow"
             android:layout_marginBottom="20dp"/>
             
     </LinearLayout>
