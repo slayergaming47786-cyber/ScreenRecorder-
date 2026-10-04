@@ -18,6 +18,13 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    # YEH NAYA STEP HAI (Bina uninstall kiye update karne ke liye)
+    - name: Cache Debug Keystore
+      uses: actions/cache@v4
+      with:
+        path: ~/.android/debug.keystore
+        key: debug-keystore-v1
+
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
       with:
