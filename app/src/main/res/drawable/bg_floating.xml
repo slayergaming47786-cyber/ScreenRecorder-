@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <!-- 50dp radius isko perfectly round/circle look dega -->
+    <corners android:radius="50dp"/>
+    <!-- Semi-transparent black background -->
+    <solid android:color="#CC000000"/>
+    <!-- Red color ka border -->
+    <stroke android:width="2dp" android:color="#F44336"/>
+</shape>
