@@ -48,7 +48,9 @@ class RecordingService : Service() {
     private var isRecording = false
 
     private lateinit var tvAction: TextView
+    private lateinit var tvDot: TextView
     private lateinit var btnClose: TextView
+    private lateinit var btnAction: LinearLayout // Naya variable
     private lateinit var timer: Chronometer
     private lateinit var floatingRoot: LinearLayout
 
@@ -128,7 +130,9 @@ class RecordingService : Service() {
         params.y = 200
 
         tvAction = floatingView.findViewById(R.id.tvAction)
+        tvDot = floatingView.findViewById(R.id.tvDot)
         btnClose = floatingView.findViewById(R.id.btnClose)
+        btnAction = floatingView.findViewById(R.id.btnAction)
         timer = floatingView.findViewById(R.id.timer)
         floatingRoot = floatingView.findViewById(R.id.floatingRoot)
 
@@ -172,6 +176,11 @@ class RecordingService : Service() {
         btnClose.setOnClickListener {
             stopSelf() 
         }
+        
+        // REC dabbe par click karne ke liye
+        btnAction.setOnClickListener {
+            handleFloatingClick(resIndex, bitIndex, fpsIndex, audioIndex)
+        }
 
         windowManager.addView(floatingView, params)
     }
@@ -181,8 +190,8 @@ class RecordingService : Service() {
             val success = startRecording(resIndex, bitIndex, fpsIndex, audioIndex)
             if (success) {
                 btnClose.visibility = View.GONE 
+                tvDot.visibility = View.GONE // Recording ke time gol dot hata do
                 tvAction.text = "STOP"
-                tvAction.setTextColor(android.graphics.Color.WHITE)
                 timer.visibility = View.VISIBLE
                 timer.base = SystemClock.elapsedRealtime()
                 timer.start()
@@ -190,8 +199,8 @@ class RecordingService : Service() {
         } else {
             stopRecording()
             btnClose.visibility = View.VISIBLE 
+            tvDot.visibility = View.VISIBLE // Wapas le aao
             tvAction.text = "REC"
-            tvAction.setTextColor(android.graphics.Color.parseColor("#F44336"))
             timer.stop()
             timer.visibility = View.GONE
             Toast.makeText(applicationContext, "Video Saved in Movies/Screen Recorder!", Toast.LENGTH_LONG).show()
@@ -201,7 +210,7 @@ class RecordingService : Service() {
     private fun startRecording(resIndex: Int, bitIndex: Int, fpsIndex: Int, audioIndex: Int): Boolean {
         return try {
             if (mediaProjection == null) {
-                Toast.makeText(applicationContext, "Error: System Token Lost. Please click '✖' and start again.", Toast.LENGTH_LONG).show()
+                Toast.makeText(applicationContext, "Error: System Token Lost. Please click '✕' and start again.", Toast.LENGTH_LONG).show()
                 return false
             }
 
@@ -257,16 +266,13 @@ class RecordingService : Service() {
 
             mediaRecorder?.prepare()
             
-            // ANDROID 14 MULTI-RECORDING TRICK
             if (virtualDisplay == null) {
-                // Pehli baar display create karo
                 virtualDisplay = mediaProjection?.createVirtualDisplay("ScreenRecorder",
                     width, height, metrics.densityDpi,
                     DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
                     mediaRecorder?.surface, null, null
                 )
             } else {
-                // Agli baar bina create kiye sirf surface update (swap) kardo
                 virtualDisplay?.resize(width, height, metrics.densityDpi)
                 virtualDisplay?.surface = mediaRecorder?.surface
             }
@@ -283,7 +289,6 @@ class RecordingService : Service() {
 
     private fun stopRecording() {
         try {
-            // Android 14 Trick: Display engine ko destroy karne ki jagah uska connection tod (null) do
             virtualDisplay?.surface = null
         } catch (e: Exception) {}
 
@@ -292,7 +297,6 @@ class RecordingService : Service() {
             mediaRecorder?.reset()
             mediaRecorder?.release()
             mediaRecorder = null
-            // DHYAAN DEIN: virtualDisplay?.release() hata diya gaya hai!
         } catch (e: Exception) {}
         isRecording = false
     }
@@ -303,7 +307,6 @@ class RecordingService : Service() {
         if (::floatingView.isInitialized) windowManager.removeView(floatingView)
         if (isRecording) stopRecording()
         
-        // Jab user khud se '✖' dabayega tab hi final engine band hoga
         virtualDisplay?.release()
         virtualDisplay = null
         mediaProjection?.stop()
