@@ -14,7 +14,9 @@ import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.Environment
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.os.SystemClock
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -35,7 +37,6 @@ import kotlin.math.abs
 class RecordingService : Service() {
 
     companion object {
-        // Yeh check karega ki button pehle se bana hua hai ya nahi
         var isServiceRunning = false
     }
 
@@ -85,7 +86,6 @@ class RecordingService : Service() {
             .setSmallIcon(android.R.drawable.ic_menu_camera)
             .build()
 
-        // Android 14 fix: Adding ServiceInfo explicitly
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
         } else {
@@ -174,6 +174,24 @@ class RecordingService : Service() {
         return try {
             val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
             mediaProjection = projectionManager.getMediaProjection(resultCode, data!!)
+            
+            // ANDROID 14 FIX: Registering mandatory callback before starting virtual display
+            mediaProjection?.registerCallback(object : MediaProjection.Callback() {
+                override fun onStop() {
+                    super.onStop()
+                    stopRecording()
+                    // UI ko wapas REC state me laane ke liye Main Thread par run karna hoga
+                    Handler(Looper.getMainLooper()).post {
+                        tvAction.text = "REC"
+                        tvAction.setTextColor(android.graphics.Color.parseColor("#F44336"))
+                        timer.stop()
+                        timer.visibility = View.GONE
+                        isServiceRunning = false
+                        stopSelf()
+                    }
+                }
+            }, Handler(Looper.getMainLooper()))
+
             mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(this) else MediaRecorder()
 
             if (audioIndex != 3) mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
@@ -185,20 +203,18 @@ class RecordingService : Service() {
             val fileName = "Record_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.mp4"
             mediaRecorder?.setOutputFile(File(directory, fileName).absolutePath)
 
-            // DYNAMIC RESOLUTION FIX: Automatically fits any phone properly
             val metrics = resources.displayMetrics
             val screenWidth = metrics.widthPixels
             val screenHeight = metrics.heightPixels
             
             val scale = when (resIndex) {
-                0 -> 0.5f // Half Quality
-                1 -> 0.7f // Medium Quality
-                else -> 1.0f // Original Quality
+                0 -> 0.5f 
+                1 -> 0.7f 
+                else -> 1.0f 
             }
             var width = (screenWidth * scale).toInt()
             var height = (screenHeight * scale).toInt()
 
-            // FIX: Encoders crash if resolution is not a multiple of 16
             width -= (width % 16)
             height -= (height % 16)
 
