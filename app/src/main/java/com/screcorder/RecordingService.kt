@@ -195,17 +195,9 @@ class RecordingService : Service() {
 
             mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(this) else MediaRecorder()
 
-            // AUDIO FIX: Improved logic to reduce distortion for internal audio hack
-            when (audioIndex) {
-                0 -> { 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        mediaRecorder?.setAudioSource(8) // REMOTE_SUBMIX
-                    } else {
-                        mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
-                    }
-                }
-                1 -> mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
-                2 -> mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
+            // AUDIO HACKS REMOVED: Sabhi modes (except Mute) ke liye standard stable MIC chalega
+            if (audioIndex != 3) {
+                mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
             }
 
             mediaRecorder?.setVideoSource(MediaRecorder.VideoSource.SURFACE)
@@ -216,10 +208,10 @@ class RecordingService : Service() {
             val fileName = "Record_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.mp4"
             mediaRecorder?.setOutputFile(File(directory, fileName).absolutePath)
 
-            // DYNAMIC RESOLUTION FIX (Size aur kam karne ke liye scale aur drop kiya)
+            // DYNAMIC RESOLUTION (Success size setup maintained)
             val metrics = resources.displayMetrics
             val scale = when (resIndex) {
-                0 -> 0.3f // 30% resolution (Size ko aur drastically drop karega)
+                0 -> 0.3f 
                 1 -> 0.5f 
                 else -> 0.8f 
             }
@@ -229,9 +221,8 @@ class RecordingService : Service() {
             height -= (height % 16)
             mediaRecorder?.setVideoSize(width, height)
 
-            // HARDCORE ENCODER OVERRIDE FOR SIZE
             val bitrate = when (bitIndex) {
-                0 -> 250 * 1024 // 250 Kbps - Extreme Low
+                0 -> 250 * 1024 
                 1 -> 500 * 1024 
                 2 -> 1000 * 1024
                 3 -> 1500 * 1024
@@ -240,9 +231,8 @@ class RecordingService : Service() {
             }
             mediaRecorder?.setVideoEncodingBitRate(bitrate)
 
-            // JABARDASTI FPS DROP: Agar encoder bitrate ko ignore kare, toh frame hi aade kar do
             val fps = when (fpsIndex) { 
-                0 -> 15 // 15 FPS (Bohot kam size)
+                0 -> 15 
                 1 -> 24 
                 else -> 30 
             }
@@ -252,9 +242,8 @@ class RecordingService : Service() {
             
             if (audioIndex != 3) {
                 mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                // AUDIO DISTORTION FIX: Bitrate aur sampling rate default/high tak le gaye
-                mediaRecorder?.setAudioEncodingBitRate(128000) // 128 kbps (Clear sound)
-                mediaRecorder?.setAudioSamplingRate(48000) // System native match (Kam distortion)
+                mediaRecorder?.setAudioEncodingBitRate(64000)
+                mediaRecorder?.setAudioSamplingRate(44100)
             }
 
             mediaRecorder?.prepare()
