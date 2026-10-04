@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="#CC000000"
+    android:padding="8dp"
+    android:orientation="horizontal"
+    android:gravity="center">
+
+    <!-- Red color ka Start/Stop button -->
+    <Button
+        android:id="@+id/btnRecordStop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="REC"
+        android:textStyle="bold"
+        android:backgroundTint="#F44336"
+        android:textColor="#FFFFFF"/>
+</LinearLayout>
