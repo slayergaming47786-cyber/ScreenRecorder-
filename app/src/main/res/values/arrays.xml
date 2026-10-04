@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Quick Presets -->
+    <string-array name="preset_options">
+        <item>Low Size (Approx 5MB/min)</item>
+        <item>Medium (Balanced)</item>
+        <item>High Quality (For Gaming)</item>
+        <item>Custom Settings</item>
+    </string-array>
+
+    <!-- Resolution Options -->
+    <string-array name="resolution_options">
+        <item>480p (854 x 480) - Smallest</item>
+        <item>720p (1280 x 720) - Balanced</item>
+        <item>1080p (1920 x 1080) - High</item>
+    </string-array>
+
+    <!-- Bitrate Options -->
+    <string-array name="bitrate_options">
+        <item>250 Kbps (Extreme Low)</item>
+        <item>500 Kbps (Approx 5MB/min)</item>
+        <item>1 Mbps (Balanced)</item>
+        <item>2 Mbps (Good Quality)</item>
+        <item>4 Mbps (Gaming)</item>
+        <item>8 Mbps (Max Quality)</item>
+    </string-array>
+
+    <!-- FPS Options -->
+    <string-array name="fps_options">
+        <item>15 FPS (Smallest File)</item>
+        <item>24 FPS (Balanced)</item>
+        <item>30 FPS (Smooth)</item>
+        <item>60 FPS (Gaming Max)</item>
+    </string-array>
+
+    <!-- Audio Options -->
+    <string-array name="audio_options">
+        <item>Internal Audio Only</item>
+        <item>Microphone Only</item>
+        <item>Internal + Microphone</item>
+        <item>Mute (No Audio)</item>
+    </string-array>
+</resources>
