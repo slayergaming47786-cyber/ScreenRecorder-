@@ -50,7 +50,7 @@ class RecordingService : Service() {
     private lateinit var tvAction: TextView
     private lateinit var tvDot: TextView
     private lateinit var btnClose: TextView
-    private lateinit var btnAction: LinearLayout // Naya variable
+    private lateinit var btnAction: LinearLayout
     private lateinit var timer: Chronometer
     private lateinit var floatingRoot: LinearLayout
 
@@ -142,7 +142,8 @@ class RecordingService : Service() {
         var initialTouchY = 0f
         var isMoved = false
 
-        floatingRoot.setOnTouchListener { _, event ->
+        // NAYA DRAG FIX: Ab yeh ek single touch listener pure capsule par smooth kaam karega.
+        val dragListener = View.OnTouchListener { view, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     initialX = params.x
@@ -165,7 +166,11 @@ class RecordingService : Service() {
                 }
                 MotionEvent.ACTION_UP -> {
                     if (!isMoved) {
-                        handleFloatingClick(resIndex, bitIndex, fpsIndex, audioIndex)
+                        // Click handle karein agar move nahi hua toh
+                        when (view.id) {
+                            R.id.btnAction -> handleFloatingClick(resIndex, bitIndex, fpsIndex, audioIndex)
+                            R.id.btnClose -> stopSelf()
+                        }
                     }
                     true
                 }
@@ -173,14 +178,10 @@ class RecordingService : Service() {
             }
         }
 
-        btnClose.setOnClickListener {
-            stopSelf() 
-        }
-        
-        // REC dabbe par click karne ke liye
-        btnAction.setOnClickListener {
-            handleFloatingClick(resIndex, bitIndex, fpsIndex, audioIndex)
-        }
+        // Apply same listener to everything so any part can be dragged
+        floatingRoot.setOnTouchListener(dragListener)
+        btnAction.setOnTouchListener(dragListener)
+        btnClose.setOnTouchListener(dragListener)
 
         windowManager.addView(floatingView, params)
     }
@@ -190,7 +191,7 @@ class RecordingService : Service() {
             val success = startRecording(resIndex, bitIndex, fpsIndex, audioIndex)
             if (success) {
                 btnClose.visibility = View.GONE 
-                tvDot.visibility = View.GONE // Recording ke time gol dot hata do
+                tvDot.visibility = View.GONE // Recording ke waqt white dot hide karein
                 tvAction.text = "STOP"
                 timer.visibility = View.VISIBLE
                 timer.base = SystemClock.elapsedRealtime()
@@ -199,7 +200,7 @@ class RecordingService : Service() {
         } else {
             stopRecording()
             btnClose.visibility = View.VISIBLE 
-            tvDot.visibility = View.VISIBLE // Wapas le aao
+            tvDot.visibility = View.VISIBLE // White dot wapas layein
             tvAction.text = "REC"
             timer.stop()
             timer.visibility = View.GONE
