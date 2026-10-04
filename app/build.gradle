@@ -7,6 +7,16 @@ android {
     namespace 'com.screcorder'
     compileSdk 34
 
+    // 1. YEH NAYA BLOCK HAI - App ko batane ke liye ki permanent key kahan hai
+    signingConfigs {
+        debug {
+            storeFile file('permanent_key.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+
     defaultConfig {
         applicationId "com.screcorder"
         minSdk 24
@@ -16,6 +26,10 @@ android {
     }
 
     buildTypes {
+        // 2. YEH NAYA BLOCK HAI - Debug mode me us permanent key ko force karna
+        debug {
+            signingConfig signingConfigs.debug
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
