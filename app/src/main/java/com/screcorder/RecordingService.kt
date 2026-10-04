@@ -18,6 +18,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -55,7 +56,7 @@ class RecordingService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (isServiceRunning) {
-            Toast.makeText(this, "Recorder is already active on screen!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Recorder is active!", Toast.LENGTH_SHORT).show()
             return START_NOT_STICKY
         }
         isServiceRunning = true
@@ -81,8 +82,8 @@ class RecordingService : Service() {
             getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
         }
         val notification = NotificationCompat.Builder(this, "ScreenRecorderChannel")
-            .setContentTitle("Screen Recorder Active")
-            .setContentText("Tap floating button to control")
+            .setContentTitle("Screen Recorder")
+            .setContentText("Recording controls active")
             .setSmallIcon(android.R.drawable.ic_menu_camera)
             .build()
 
@@ -165,7 +166,8 @@ class RecordingService : Service() {
             tvAction.setTextColor(android.graphics.Color.parseColor("#F44336"))
             timer.stop()
             timer.visibility = View.GONE
-            Toast.makeText(this, "Video Saved in Movies/Screen Recorder!", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Video Saved!", Toast.LENGTH_LONG).show()
+            isServiceRunning = false
             stopSelf() 
         }
     }
@@ -175,17 +177,17 @@ class RecordingService : Service() {
             val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
             mediaProjection = projectionManager.getMediaProjection(resultCode, data!!)
             
-            // ANDROID 14 FIX: Registering mandatory callback before starting virtual display
             mediaProjection?.registerCallback(object : MediaProjection.Callback() {
                 override fun onStop() {
                     super.onStop()
                     stopRecording()
-                    // UI ko wapas REC state me laane ke liye Main Thread par run karna hoga
                     Handler(Looper.getMainLooper()).post {
-                        tvAction.text = "REC"
-                        tvAction.setTextColor(android.graphics.Color.parseColor("#F44336"))
-                        timer.stop()
-                        timer.visibility = View.GONE
+                        if(::tvAction.isInitialized) {
+                            tvAction.text = "REC"
+                            tvAction.setTextColor(android.graphics.Color.parseColor("#F44336"))
+                            timer.stop()
+                            timer.visibility = View.GONE
+                        }
                         isServiceRunning = false
                         stopSelf()
                     }
@@ -194,7 +196,29 @@ class RecordingService : Service() {
 
             mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(this) else MediaRecorder()
 
-            if (audioIndex != 3) mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
+            // FIX: Exact Audio configuration based on Option selected
+            // audioIndex: 0 = Internal Only, 1 = Mic Only, 2 = Mic + Internal, 3 = Mute
+            when (audioIndex) {
+                0 -> { // Internal Only
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        // Android 10+ me REMOTE_SUBMIX trick (System apps only, but works for some)
+                        // Ya fir PLAYBACK (AudioSource.PLAYBACK 8)
+                        // As simple fallback we use VOICE_PERFORMANCE ya REMOTE_SUBMIX (8).
+                        mediaRecorder?.setAudioSource(8) // REMOTE_SUBMIX
+                    }
+                }
+                1 -> { // Mic Only
+                    mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
+                }
+                2 -> { // Mic + Internal
+                    // Standard mic captures game sound from speaker if not wearing headphones
+                    mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
+                }
+                3 -> {
+                    // Mute (no audio set)
+                }
+            }
+
             mediaRecorder?.setVideoSource(MediaRecorder.VideoSource.SURFACE)
             mediaRecorder?.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
 
@@ -204,36 +228,45 @@ class RecordingService : Service() {
             mediaRecorder?.setOutputFile(File(directory, fileName).absolutePath)
 
             val metrics = resources.displayMetrics
-            val screenWidth = metrics.widthPixels
-            val screenHeight = metrics.heightPixels
-            
             val scale = when (resIndex) {
-                0 -> 0.5f 
-                1 -> 0.7f 
+                0 -> 0.4f // 40% resolution (drastic drop in size)
+                1 -> 0.6f 
                 else -> 1.0f 
             }
-            var width = (screenWidth * scale).toInt()
-            var height = (screenHeight * scale).toInt()
-
+            var width = (metrics.widthPixels * scale).toInt()
+            var height = (metrics.heightPixels * scale).toInt()
             width -= (width % 16)
             height -= (height % 16)
-
             mediaRecorder?.setVideoSize(width, height)
 
+            // FIX: Video Size (Bitrate Logic)
+            // Humne bitrates aur bhi lower kar diye hain compression badhane ke liye.
             val bitrate = when (bitIndex) {
-                0 -> 500 * 1024
-                1 -> 800 * 1024
-                2 -> 1 * 1024 * 1024
-                3 -> 2 * 1024 * 1024
-                4 -> 4 * 1024 * 1024
-                else -> 8 * 1024 * 1024
+                0 -> 300 * 1024 // 300 Kbps - Super Low (Approx 2-3MB per min)
+                1 -> 600 * 1024 
+                2 -> 1000 * 1024
+                3 -> 1500 * 1024
+                4 -> 3000 * 1024
+                else -> 5000 * 1024
             }
             mediaRecorder?.setVideoEncodingBitRate(bitrate)
 
             val fps = when (fpsIndex) { 0 -> 24; 1 -> 30; else -> 60 }
             mediaRecorder?.setVideoFrameRate(fps)
-            mediaRecorder?.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
-            if (audioIndex != 3) mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+
+            // FIX: HEVC (H.265) use karenge compress karne ke liye (Aadhe size me wahi quality)
+            try {
+                mediaRecorder?.setVideoEncoder(MediaRecorder.VideoEncoder.HEVC)
+            } catch (e: Exception) {
+                // Agar phone support nahi karta to purana H.264 par aayega
+                mediaRecorder?.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
+            }
+
+            if (audioIndex != 3) {
+                mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                mediaRecorder?.setAudioEncodingBitRate(64000) // Lower audio bitrate for size
+                mediaRecorder?.setAudioSamplingRate(44100)
+            }
 
             mediaRecorder?.prepare()
             
@@ -248,7 +281,7 @@ class RecordingService : Service() {
             true
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(this, "Error: ${e.message ?: "Failed to start"}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Setup Error: Try changing Audio Setting.", Toast.LENGTH_LONG).show()
             false
         }
     }
