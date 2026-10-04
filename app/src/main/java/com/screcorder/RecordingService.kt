@@ -48,6 +48,7 @@ class RecordingService : Service() {
     private var isRecording = false
 
     private lateinit var tvAction: TextView
+    private lateinit var btnClose: TextView
     private lateinit var timer: Chronometer
     private lateinit var floatingRoot: LinearLayout
 
@@ -55,7 +56,7 @@ class RecordingService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (isServiceRunning) {
-            Toast.makeText(this, "Recorder is active!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Recorder is already on screen!", Toast.LENGTH_SHORT).show()
             return START_NOT_STICKY
         }
         isServiceRunning = true
@@ -107,6 +108,7 @@ class RecordingService : Service() {
         params.y = 200
 
         tvAction = floatingView.findViewById(R.id.tvAction)
+        btnClose = floatingView.findViewById(R.id.btnClose)
         timer = floatingView.findViewById(R.id.timer)
         floatingRoot = floatingView.findViewById(R.id.floatingRoot)
 
@@ -139,6 +141,7 @@ class RecordingService : Service() {
                 }
                 MotionEvent.ACTION_UP -> {
                     if (!isMoved) {
+                        // Agar close button par click nahi hua, tabhi rec/stop handle karo
                         handleFloatingClick(resultCode, data, resIndex, bitIndex, fpsIndex, audioIndex)
                     }
                     true
@@ -146,6 +149,12 @@ class RecordingService : Service() {
                 else -> false
             }
         }
+
+        // Close (X) button logic
+        btnClose.setOnClickListener {
+            stopSelf() // Yeh puri app/service band kar dega
+        }
+
         windowManager.addView(floatingView, params)
     }
 
@@ -153,6 +162,7 @@ class RecordingService : Service() {
         if (!isRecording) {
             val success = startRecording(resultCode, data, resIndex, bitIndex, fpsIndex, audioIndex)
             if (success) {
+                btnClose.visibility = View.GONE // Record hote time close button hata do
                 tvAction.text = "STOP"
                 tvAction.setTextColor(android.graphics.Color.WHITE)
                 timer.visibility = View.VISIBLE
@@ -161,13 +171,14 @@ class RecordingService : Service() {
             }
         } else {
             stopRecording()
+            btnClose.visibility = View.VISIBLE // Stop hone par wapas close button dikhao
             tvAction.text = "REC"
             tvAction.setTextColor(android.graphics.Color.parseColor("#F44336"))
             timer.stop()
             timer.visibility = View.GONE
-            Toast.makeText(this, "Video Saved!", Toast.LENGTH_LONG).show()
-            isServiceRunning = false
-            stopSelf() 
+            Toast.makeText(this, "Video Saved!", Toast.LENGTH_SHORT).show()
+            
+            // Yahan se humne stopSelf() hata diya hai taaki button screen par rahe!
         }
     }
 
@@ -182,20 +193,18 @@ class RecordingService : Service() {
                     stopRecording()
                     Handler(Looper.getMainLooper()).post {
                         if(::tvAction.isInitialized) {
+                            btnClose.visibility = View.VISIBLE
                             tvAction.text = "REC"
                             tvAction.setTextColor(android.graphics.Color.parseColor("#F44336"))
                             timer.stop()
                             timer.visibility = View.GONE
                         }
-                        isServiceRunning = false
-                        stopSelf()
                     }
                 }
             }, Handler(Looper.getMainLooper()))
 
             mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(this) else MediaRecorder()
 
-            // AUDIO HACKS REMOVED: Sabhi modes (except Mute) ke liye standard stable MIC chalega
             if (audioIndex != 3) {
                 mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
             }
@@ -208,7 +217,6 @@ class RecordingService : Service() {
             val fileName = "Record_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.mp4"
             mediaRecorder?.setOutputFile(File(directory, fileName).absolutePath)
 
-            // DYNAMIC RESOLUTION (Success size setup maintained)
             val metrics = resources.displayMetrics
             val scale = when (resIndex) {
                 0 -> 0.3f 
@@ -237,7 +245,6 @@ class RecordingService : Service() {
                 else -> 30 
             }
             mediaRecorder?.setVideoFrameRate(fps)
-
             mediaRecorder?.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
             
             if (audioIndex != 3) {
