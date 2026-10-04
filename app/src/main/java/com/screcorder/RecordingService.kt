@@ -195,9 +195,17 @@ class RecordingService : Service() {
 
             mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(this) else MediaRecorder()
 
-            // FIX: Removed experimental audio sources that crash the app. Standard Mic is used.
-            if (audioIndex != 3) {
-                mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
+            // AUDIO FIX: Improved logic to reduce distortion for internal audio hack
+            when (audioIndex) {
+                0 -> { 
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        mediaRecorder?.setAudioSource(8) // REMOTE_SUBMIX
+                    } else {
+                        mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
+                    }
+                }
+                1 -> mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
+                2 -> mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
             }
 
             mediaRecorder?.setVideoSource(MediaRecorder.VideoSource.SURFACE)
@@ -208,11 +216,12 @@ class RecordingService : Service() {
             val fileName = "Record_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.mp4"
             mediaRecorder?.setOutputFile(File(directory, fileName).absolutePath)
 
+            // DYNAMIC RESOLUTION FIX (Size aur kam karne ke liye scale aur drop kiya)
             val metrics = resources.displayMetrics
             val scale = when (resIndex) {
-                0 -> 0.4f // 40% resolution
-                1 -> 0.6f 
-                else -> 1.0f 
+                0 -> 0.3f // 30% resolution (Size ko aur drastically drop karega)
+                1 -> 0.5f 
+                else -> 0.8f 
             }
             var width = (metrics.widthPixels * scale).toInt()
             var height = (metrics.heightPixels * scale).toInt()
@@ -220,9 +229,10 @@ class RecordingService : Service() {
             height -= (height % 16)
             mediaRecorder?.setVideoSize(width, height)
 
+            // HARDCORE ENCODER OVERRIDE FOR SIZE
             val bitrate = when (bitIndex) {
-                0 -> 300 * 1024 // 300 Kbps - Super Low
-                1 -> 600 * 1024 
+                0 -> 250 * 1024 // 250 Kbps - Extreme Low
+                1 -> 500 * 1024 
                 2 -> 1000 * 1024
                 3 -> 1500 * 1024
                 4 -> 3000 * 1024
@@ -230,16 +240,21 @@ class RecordingService : Service() {
             }
             mediaRecorder?.setVideoEncodingBitRate(bitrate)
 
-            val fps = when (fpsIndex) { 0 -> 24; 1 -> 30; else -> 60 }
+            // JABARDASTI FPS DROP: Agar encoder bitrate ko ignore kare, toh frame hi aade kar do
+            val fps = when (fpsIndex) { 
+                0 -> 15 // 15 FPS (Bohot kam size)
+                1 -> 24 
+                else -> 30 
+            }
             mediaRecorder?.setVideoFrameRate(fps)
 
-            // FIX: Reverted to highly compatible H264 to prevent MediaRecorder state corruption.
             mediaRecorder?.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
-
+            
             if (audioIndex != 3) {
                 mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                mediaRecorder?.setAudioEncodingBitRate(64000)
-                mediaRecorder?.setAudioSamplingRate(44100)
+                // AUDIO DISTORTION FIX: Bitrate aur sampling rate default/high tak le gaye
+                mediaRecorder?.setAudioEncodingBitRate(128000) // 128 kbps (Clear sound)
+                mediaRecorder?.setAudioSamplingRate(48000) // System native match (Kam distortion)
             }
 
             mediaRecorder?.prepare()
