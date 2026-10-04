@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
@@ -33,6 +34,11 @@ import kotlin.math.abs
 
 class RecordingService : Service() {
 
+    companion object {
+        // Yeh check karega ki button pehle se bana hua hai ya nahi
+        var isServiceRunning = false
+    }
+
     private lateinit var windowManager: WindowManager
     private lateinit var floatingView: View
     private var mediaProjection: MediaProjection? = null
@@ -47,13 +53,13 @@ class RecordingService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        createNotificationChannel()
-        val notification = NotificationCompat.Builder(this, "ScreenRecorderChannel")
-            .setContentTitle("Screen Recorder")
-            .setContentText("Ready to record")
-            .setSmallIcon(android.R.drawable.ic_menu_camera)
-            .build()
-        startForeground(1, notification)
+        if (isServiceRunning) {
+            Toast.makeText(this, "Recorder is already active on screen!", Toast.LENGTH_SHORT).show()
+            return START_NOT_STICKY
+        }
+        isServiceRunning = true
+
+        startForegroundServiceSafe()
 
         if (intent != null) {
             val resultCode = intent.getIntExtra("code", -1)
@@ -68,10 +74,22 @@ class RecordingService : Service() {
         return START_NOT_STICKY
     }
 
-    private fun createNotificationChannel() {
+    private fun startForegroundServiceSafe() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel("ScreenRecorderChannel", "Screen Recorder", NotificationManager.IMPORTANCE_LOW)
             getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        }
+        val notification = NotificationCompat.Builder(this, "ScreenRecorderChannel")
+            .setContentTitle("Screen Recorder Active")
+            .setContentText("Tap floating button to control")
+            .setSmallIcon(android.R.drawable.ic_menu_camera)
+            .build()
+
+        // Android 14 fix: Adding ServiceInfo explicitly
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
+        } else {
+            startForeground(1, notification)
         }
     }
 
@@ -98,7 +116,6 @@ class RecordingService : Service() {
         var initialTouchY = 0f
         var isMoved = false
 
-        // Moveable Screen Drag Logic
         floatingRoot.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -112,7 +129,6 @@ class RecordingService : Service() {
                 MotionEvent.ACTION_MOVE -> {
                     val diffX = (event.rawX - initialTouchX).toInt()
                     val diffY = (event.rawY - initialTouchY).toInt()
-                    // Agar 10 pixels se jyada hila, matlab drag ho raha hai
                     if (abs(diffX) > 10 || abs(diffY) > 10) {
                         isMoved = true
                         params.x = initialX + diffX
@@ -122,7 +138,6 @@ class RecordingService : Service() {
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    // Agar drag nahi hua, matlab click kiya gaya hai
                     if (!isMoved) {
                         handleFloatingClick(resultCode, data, resIndex, bitIndex, fpsIndex, audioIndex)
                     }
@@ -131,7 +146,6 @@ class RecordingService : Service() {
                 else -> false
             }
         }
-
         windowManager.addView(floatingView, params)
     }
 
@@ -151,8 +165,8 @@ class RecordingService : Service() {
             tvAction.setTextColor(android.graphics.Color.parseColor("#F44336"))
             timer.stop()
             timer.visibility = View.GONE
-            Toast.makeText(this, "Video Saved! Check Movies Folder.", Toast.LENGTH_LONG).show()
-            stopSelf() // Yeh app ko background se band kar dega
+            Toast.makeText(this, "Video Saved in Movies/Screen Recorder!", Toast.LENGTH_LONG).show()
+            stopSelf() 
         }
     }
 
@@ -171,8 +185,23 @@ class RecordingService : Service() {
             val fileName = "Record_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.mp4"
             mediaRecorder?.setOutputFile(File(directory, fileName).absolutePath)
 
-            val width = when (resIndex) { 0 -> 480; 1 -> 720; else -> 1080 }
-            val height = when (resIndex) { 0 -> 854; 1 -> 1280; else -> 1920 }
+            // DYNAMIC RESOLUTION FIX: Automatically fits any phone properly
+            val metrics = resources.displayMetrics
+            val screenWidth = metrics.widthPixels
+            val screenHeight = metrics.heightPixels
+            
+            val scale = when (resIndex) {
+                0 -> 0.5f // Half Quality
+                1 -> 0.7f // Medium Quality
+                else -> 1.0f // Original Quality
+            }
+            var width = (screenWidth * scale).toInt()
+            var height = (screenHeight * scale).toInt()
+
+            // FIX: Encoders crash if resolution is not a multiple of 16
+            width -= (width % 16)
+            height -= (height % 16)
+
             mediaRecorder?.setVideoSize(width, height)
 
             val bitrate = when (bitIndex) {
@@ -187,13 +216,11 @@ class RecordingService : Service() {
 
             val fps = when (fpsIndex) { 0 -> 24; 1 -> 30; else -> 60 }
             mediaRecorder?.setVideoFrameRate(fps)
-
             mediaRecorder?.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
             if (audioIndex != 3) mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
 
             mediaRecorder?.prepare()
             
-            val metrics = resources.displayMetrics
             virtualDisplay = mediaProjection?.createVirtualDisplay("ScreenRecorder",
                 width, height, metrics.densityDpi,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
@@ -205,30 +232,25 @@ class RecordingService : Service() {
             true
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(this, "Error starting: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Error: ${e.message ?: "Failed to start"}", Toast.LENGTH_LONG).show()
             false
         }
     }
 
     private fun stopRecording() {
-        try {
-            mediaRecorder?.stop()
-        } catch (e: RuntimeException) {
-            // Agar record hone se pehle turant stop kar diya, toh Android error deta hai. Isliye isko ignore karenge.
-        }
+        try { mediaRecorder?.stop() } catch (e: Exception) {}
         try {
             mediaRecorder?.reset()
             mediaRecorder?.release()
             virtualDisplay?.release()
             mediaProjection?.stop()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        } catch (e: Exception) {}
         isRecording = false
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        isServiceRunning = false
         if (::floatingView.isInitialized) windowManager.removeView(floatingView)
         if (isRecording) stopRecording()
     }
