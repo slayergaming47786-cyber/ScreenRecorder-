@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Quick Presets"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <RadioGroup
+            android:id="@+id/radioGroupPresets"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+            
+            <RadioButton
+                android:id="@+id/rbLow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Low Size (Approx 5MB/min)" />
+                
+            <RadioButton
+                android:id="@+id/rbMedium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Medium (Balanced)" />
+                
+            <RadioButton
+                android:id="@+id/rbHigh"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="High Quality (For Gaming)" />
+                
+            <RadioButton
+                android:id="@+id/rbCustom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Custom Settings"
+                android:checked="true" />
+        </RadioGroup>
+
+        <LinearLayout
+            android:id="@+id/customSettingsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp"
+            android:background="#F0F0F0"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Resolution"
+                android:textStyle="bold"/>
+            <Spinner
+                android:id="@+id/spinnerResolution"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:entries="@array/resolution_options"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bitrate (Control Video Size)"
+                android:layout_marginTop="8dp"
+                android:textStyle="bold"/>
+            <Spinner
+                android:id="@+id/spinnerBitrate"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:entries="@array/bitrate_options"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="FPS (Frames Per Second)"
+                android:layout_marginTop="8dp"
+                android:textStyle="bold"/>
+            <Spinner
+                android:id="@+id/spinnerFps"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:entries="@array/fps_options"/>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Audio Setup"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
+            
+        <Spinner
+            android:id="@+id/spinnerAudio"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:entries="@array/audio_options"
+            android:layout_marginBottom="24dp"/>
+
+        <Button
+            android:id="@+id/btnStart"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Show Floating Button &amp; Start"
+            android:textSize="16sp"
+            android:backgroundTint="#2196F3"
+            android:textColor="#FFFFFF" />
+
+    </LinearLayout>
+</ScrollView>
