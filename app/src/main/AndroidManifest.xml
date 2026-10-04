@@ -3,20 +3,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.screcorder">
 
-    <!-- Screen Recording aur Audio Permissions -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
-    <!-- Video save karne ke liye storage permission -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
-    
-    <!-- Floating button ke liye permission -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
 
     <application
         android:allowBackup="true"
+        android:icon="@drawable/app_icon"
+        android:roundIcon="@drawable/app_icon"
         android:label="Screen Recorder"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
@@ -30,7 +27,6 @@
             </intent-filter>
         </activity>
 
-        <!-- Background me recording handle karne ke liye service -->
         <service
             android:name=".RecordingService"
             android:foregroundServiceType="mediaProjection|microphone"
