@@ -56,7 +56,7 @@ class RecordingService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (isServiceRunning) {
-            Toast.makeText(this, "Recorder is already on screen!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(applicationContext, "Recorder is already on screen!", Toast.LENGTH_SHORT).show()
             return START_NOT_STICKY
         }
         isServiceRunning = true
@@ -71,7 +71,28 @@ class RecordingService : Service() {
             val fpsIndex = intent.getIntExtra("fpsIndex", 1)
             val audioIndex = intent.getIntExtra("audioIndex", 0)
 
-            setupFloatingWindow(resultCode, data, resIndex, bitIndex, fpsIndex, audioIndex)
+            // FIX 1: App khulte hi token lock kar lo taaki timeout ya re-use ka error na aaye
+            try {
+                val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+                mediaProjection = projectionManager.getMediaProjection(resultCode, data!!)
+                
+                mediaProjection?.registerCallback(object : MediaProjection.Callback() {
+                    override fun onStop() {
+                        super.onStop()
+                        stopRecording()
+                        Handler(Looper.getMainLooper()).post {
+                            Toast.makeText(applicationContext, "System stopped the projection.", Toast.LENGTH_SHORT).show()
+                            stopSelf() // Agar system notification se stop kare, toh app band ho jaye
+                        }
+                    }
+                }, Handler(Looper.getMainLooper()))
+            } catch (e: Exception) {
+                Toast.makeText(applicationContext, "Token Error: Please restart app.", Toast.LENGTH_LONG).show()
+                stopSelf()
+                return START_NOT_STICKY
+            }
+
+            setupFloatingWindow(resIndex, bitIndex, fpsIndex, audioIndex)
         }
         return START_NOT_STICKY
     }
@@ -94,7 +115,7 @@ class RecordingService : Service() {
         }
     }
 
-    private fun setupFloatingWindow(resultCode: Int, data: Intent?, resIndex: Int, bitIndex: Int, fpsIndex: Int, audioIndex: Int) {
+    private fun setupFloatingWindow(resIndex: Int, bitIndex: Int, fpsIndex: Int, audioIndex: Int) {
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         floatingView = LayoutInflater.from(this).inflate(R.layout.layout_floating_widget, null)
 
@@ -141,8 +162,7 @@ class RecordingService : Service() {
                 }
                 MotionEvent.ACTION_UP -> {
                     if (!isMoved) {
-                        // Agar close button par click nahi hua, tabhi rec/stop handle karo
-                        handleFloatingClick(resultCode, data, resIndex, bitIndex, fpsIndex, audioIndex)
+                        handleFloatingClick(resIndex, bitIndex, fpsIndex, audioIndex)
                     }
                     true
                 }
@@ -150,19 +170,18 @@ class RecordingService : Service() {
             }
         }
 
-        // Close (X) button logic
         btnClose.setOnClickListener {
-            stopSelf() // Yeh puri app/service band kar dega
+            stopSelf() 
         }
 
         windowManager.addView(floatingView, params)
     }
 
-    private fun handleFloatingClick(resultCode: Int, data: Intent?, resIndex: Int, bitIndex: Int, fpsIndex: Int, audioIndex: Int) {
+    private fun handleFloatingClick(resIndex: Int, bitIndex: Int, fpsIndex: Int, audioIndex: Int) {
         if (!isRecording) {
-            val success = startRecording(resultCode, data, resIndex, bitIndex, fpsIndex, audioIndex)
+            val success = startRecording(resIndex, bitIndex, fpsIndex, audioIndex)
             if (success) {
-                btnClose.visibility = View.GONE // Record hote time close button hata do
+                btnClose.visibility = View.GONE 
                 tvAction.text = "STOP"
                 tvAction.setTextColor(android.graphics.Color.WHITE)
                 timer.visibility = View.VISIBLE
@@ -171,37 +190,22 @@ class RecordingService : Service() {
             }
         } else {
             stopRecording()
-            btnClose.visibility = View.VISIBLE // Stop hone par wapas close button dikhao
+            btnClose.visibility = View.VISIBLE 
             tvAction.text = "REC"
             tvAction.setTextColor(android.graphics.Color.parseColor("#F44336"))
             timer.stop()
             timer.visibility = View.GONE
-            Toast.makeText(this, "Video Saved!", Toast.LENGTH_SHORT).show()
-            
-            // Yahan se humne stopSelf() hata diya hai taaki button screen par rahe!
+            // FIX 2: Global message - ye app ke bahar bhi dikhega
+            Toast.makeText(applicationContext, "Video Saved Successfully!", Toast.LENGTH_LONG).show()
         }
     }
 
-    private fun startRecording(resultCode: Int, data: Intent?, resIndex: Int, bitIndex: Int, fpsIndex: Int, audioIndex: Int): Boolean {
+    private fun startRecording(resIndex: Int, bitIndex: Int, fpsIndex: Int, audioIndex: Int): Boolean {
         return try {
-            val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-            mediaProjection = projectionManager.getMediaProjection(resultCode, data!!)
-            
-            mediaProjection?.registerCallback(object : MediaProjection.Callback() {
-                override fun onStop() {
-                    super.onStop()
-                    stopRecording()
-                    Handler(Looper.getMainLooper()).post {
-                        if(::tvAction.isInitialized) {
-                            btnClose.visibility = View.VISIBLE
-                            tvAction.text = "REC"
-                            tvAction.setTextColor(android.graphics.Color.parseColor("#F44336"))
-                            timer.stop()
-                            timer.visibility = View.GONE
-                        }
-                    }
-                }
-            }, Handler(Looper.getMainLooper()))
+            if (mediaProjection == null) {
+                Toast.makeText(applicationContext, "Error: Projection token lost. Please restart.", Toast.LENGTH_LONG).show()
+                return false
+            }
 
             mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(this) else MediaRecorder()
 
@@ -255,6 +259,7 @@ class RecordingService : Service() {
 
             mediaRecorder?.prepare()
             
+            // Yahan hum pehle se locked mediaProjection use kar rahe hain
             virtualDisplay = mediaProjection?.createVirtualDisplay("ScreenRecorder",
                 width, height, metrics.densityDpi,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
@@ -266,7 +271,7 @@ class RecordingService : Service() {
             true
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(applicationContext, "Global Error: ${e.message}", Toast.LENGTH_LONG).show()
             false
         }
     }
@@ -276,8 +281,12 @@ class RecordingService : Service() {
         try {
             mediaRecorder?.reset()
             mediaRecorder?.release()
+            mediaRecorder = null
+            
             virtualDisplay?.release()
-            mediaProjection?.stop()
+            virtualDisplay = null
+            
+            // FIX: Yahan mediaProjection?.stop() nahi karenge, taaki woh agli recording ke liye zinda rahe!
         } catch (e: Exception) {}
         isRecording = false
     }
@@ -287,5 +296,9 @@ class RecordingService : Service() {
         isServiceRunning = false
         if (::floatingView.isInitialized) windowManager.removeView(floatingView)
         if (isRecording) stopRecording()
+        
+        // Jab user X (close) dabayega, tabhi app ka token destroy hoga
+        mediaProjection?.stop() 
+        mediaProjection = null
     }
 }
