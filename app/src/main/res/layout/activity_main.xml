@@ -5,11 +5,12 @@
     android:background="@drawable/bg_app_dark" 
     android:fillViewport="true">
 
+    <!-- Padding 20dp se 12dp kar di gayi hai -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="12dp">
 
         <!-- Top Header -->
         <LinearLayout
@@ -17,17 +18,17 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="12dp">
             <TextView
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
                 android:background="@drawable/bg_preset_selected"
                 android:backgroundTint="#8B5CF6"
                 android:gravity="center"
                 android:text="▶"
                 android:textColor="#FFFFFF"
-                android:textSize="22sp"
-                android:layout_marginEnd="16dp"/>
+                android:textSize="20sp"
+                android:layout_marginEnd="12dp"/>
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -37,34 +38,34 @@
                     android:layout_height="wrap_content"
                     android:text="Streaming Settings"
                     android:textColor="#FFFFFF"
-                    android:textSize="22sp"
+                    android:textSize="20sp"
                     android:textStyle="bold"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Choose the best quality for your needs"
                     android:textColor="#94A3B8"
-                    android:textSize="12sp"/>
+                    android:textSize="11sp"/>
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Quick Presets Section (4 Cards) -->
+        <!-- Quick Presets Section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_card_glass"
             android:orientation="vertical"
-            android:padding="16dp"
-            android:layout_marginBottom="20dp">
+            android:padding="12dp"
+            android:layout_marginBottom="12dp">
             
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="⚡ Quick Presets"
                 android:textColor="#FFFFFF"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="10dp"/>
                 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -72,63 +73,64 @@
                 android:orientation="horizontal"
                 android:weightSum="4">
                 
+                <!-- Cards ki height 100dp se 80dp kar di gayi hai -->
                 <!-- Preset 1 -->
                 <LinearLayout
                     android:id="@+id/cardLow"
                     android:layout_width="0dp"
-                    android:layout_height="100dp"
+                    android:layout_height="80dp"
                     android:layout_weight="1"
                     android:background="@drawable/bg_preset_unselected"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_marginEnd="6dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌱" android:textSize="24sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Low Size" android:textColor="#FFF" android:textSize="10sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="≈ 5MB/min" android:textColor="#A0AABF" android:textSize="8sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🌱" android:textSize="20sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Low Size" android:textColor="#FFF" android:textSize="9sp" android:textStyle="bold" android:layout_marginTop="2dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="≈ 5MB/min" android:textColor="#A0AABF" android:textSize="7sp"/>
                 </LinearLayout>
 
                 <!-- Preset 2 -->
                 <LinearLayout
                     android:id="@+id/cardMedium"
                     android:layout_width="0dp"
-                    android:layout_height="100dp"
+                    android:layout_height="80dp"
                     android:layout_weight="1"
                     android:background="@drawable/bg_preset_unselected"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_marginEnd="6dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎛️" android:textSize="24sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Medium" android:textColor="#FFF" android:textSize="10sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Balanced" android:textColor="#A0AABF" android:textSize="8sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎛️" android:textSize="20sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Medium" android:textColor="#FFF" android:textSize="9sp" android:textStyle="bold" android:layout_marginTop="2dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Balanced" android:textColor="#A0AABF" android:textSize="7sp"/>
                 </LinearLayout>
 
                 <!-- Preset 3 -->
                 <LinearLayout
                     android:id="@+id/cardHigh"
                     android:layout_width="0dp"
-                    android:layout_height="100dp"
+                    android:layout_height="80dp"
                     android:layout_weight="1"
                     android:background="@drawable/bg_preset_unselected"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_marginEnd="6dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎮" android:textSize="24sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="High Quality" android:textColor="#FFF" android:textSize="10sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="For Gaming" android:textColor="#A0AABF" android:textSize="8sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎮" android:textSize="20sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="High Quality" android:textColor="#FFF" android:textSize="9sp" android:textStyle="bold" android:layout_marginTop="2dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="For Gaming" android:textColor="#A0AABF" android:textSize="7sp"/>
                 </LinearLayout>
 
-                <!-- Preset 4 (Custom - Default Selected) -->
+                <!-- Preset 4 -->
                 <LinearLayout
                     android:id="@+id/cardCustom"
                     android:layout_width="0dp"
-                    android:layout_height="100dp"
+                    android:layout_height="80dp"
                     android:layout_weight="1"
                     android:background="@drawable/bg_preset_selected"
                     android:orientation="vertical"
                     android:gravity="center">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⚙️" android:textSize="24sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Custom" android:textColor="#FFF" android:textSize="10sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Set Manually" android:textColor="#A0AABF" android:textSize="8sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⚙️" android:textSize="20sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Custom" android:textColor="#FFF" android:textSize="9sp" android:textStyle="bold" android:layout_marginTop="2dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Set Manually" android:textColor="#A0AABF" android:textSize="7sp"/>
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -139,19 +141,21 @@
             android:layout_height="wrap_content"
             android:background="@drawable/bg_card_glass"
             android:orientation="vertical"
-            android:padding="16dp"
-            android:layout_marginBottom="20dp">
+            android:padding="12dp"
+            android:layout_marginBottom="12dp">
             
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎥 Video Settings" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold" android:layout_marginBottom="16dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎥 Video Settings" android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold" android:layout_marginBottom="10dp"/>
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📺 Resolution" android:textColor="#E2E8F0" android:textSize="13sp" android:layout_marginBottom="6dp"/>
-            <Spinner android:id="@+id/spinnerResolution" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/bg_preset_unselected" android:popupBackground="#1E293B" android:textColor="#FFFFFF" android:entries="@array/resolution_options" android:layout_marginBottom="12dp" android:paddingHorizontal="10dp"/>
+            <!-- Spinners ki height 50dp se 40dp aur margins kam kiye -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📺 Resolution" android:textColor="#E2E8F0" android:textSize="12sp" android:layout_marginBottom="4dp"/>
+            <!-- Dark theme strictly lagaya -->
+            <Spinner android:id="@+id/spinnerResolution" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/bg_preset_unselected" android:theme="@style/ThemeOverlay.AppCompat.Dark" android:popupBackground="#1E293B" android:entries="@array/resolution_options" android:layout_marginBottom="10dp" android:paddingHorizontal="10dp"/>
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📊 Bitrate (Control Size)" android:textColor="#E2E8F0" android:textSize="13sp" android:layout_marginBottom="6dp"/>
-            <Spinner android:id="@+id/spinnerBitrate" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/bg_preset_unselected" android:popupBackground="#1E293B" android:textColor="#FFFFFF" android:entries="@array/bitrate_options" android:layout_marginBottom="12dp" android:paddingHorizontal="10dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📊 Bitrate (Control Size)" android:textColor="#E2E8F0" android:textSize="12sp" android:layout_marginBottom="4dp"/>
+            <Spinner android:id="@+id/spinnerBitrate" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/bg_preset_unselected" android:theme="@style/ThemeOverlay.AppCompat.Dark" android:popupBackground="#1E293B" android:entries="@array/bitrate_options" android:layout_marginBottom="10dp" android:paddingHorizontal="10dp"/>
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📚 FPS (Frames Per Second)" android:textColor="#E2E8F0" android:textSize="13sp" android:layout_marginBottom="6dp"/>
-            <Spinner android:id="@+id/spinnerFps" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/bg_preset_unselected" android:popupBackground="#1E293B" android:textColor="#FFFFFF" android:entries="@array/fps_options" android:paddingHorizontal="10dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📚 FPS (Frames Per Second)" android:textColor="#E2E8F0" android:textSize="12sp" android:layout_marginBottom="4dp"/>
+            <Spinner android:id="@+id/spinnerFps" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/bg_preset_unselected" android:theme="@style/ThemeOverlay.AppCompat.Dark" android:popupBackground="#1E293B" android:entries="@array/fps_options" android:paddingHorizontal="10dp"/>
         </LinearLayout>
 
         <!-- Audio Settings -->
@@ -160,23 +164,23 @@
             android:layout_height="wrap_content"
             android:background="@drawable/bg_card_glass"
             android:orientation="vertical"
-            android:padding="16dp"
-            android:layout_marginBottom="30dp">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔊 Audio Setup" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold" android:layout_marginBottom="16dp"/>
-            <Spinner android:id="@+id/spinnerAudio" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/bg_preset_unselected" android:popupBackground="#1E293B" android:textColor="#FFFFFF" android:entries="@array/audio_options" android:paddingHorizontal="10dp"/>
+            android:padding="12dp"
+            android:layout_marginBottom="12dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔊 Audio Setup" android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold" android:layout_marginBottom="10dp"/>
+            <Spinner android:id="@+id/spinnerAudio" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/bg_preset_unselected" android:theme="@style/ThemeOverlay.AppCompat.Dark" android:popupBackground="#1E293B" android:entries="@array/audio_options" android:paddingHorizontal="10dp"/>
         </LinearLayout>
 
         <!-- Glow Start Button -->
         <Button
             android:id="@+id/btnStart"
             android:layout_width="match_parent"
-            android:layout_height="65dp"
+            android:layout_height="50dp"
             android:text="▶ SHOW FLOATING BUTTON"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold"
             android:background="@drawable/bg_btn_start_glow"
-            android:layout_marginBottom="20dp"/>
+            android:layout_marginBottom="0dp"/>
             
     </LinearLayout>
 </ScrollView>
