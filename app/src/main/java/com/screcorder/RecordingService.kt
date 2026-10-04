@@ -18,7 +18,6 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.SystemClock
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -196,27 +195,9 @@ class RecordingService : Service() {
 
             mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(this) else MediaRecorder()
 
-            // FIX: Exact Audio configuration based on Option selected
-            // audioIndex: 0 = Internal Only, 1 = Mic Only, 2 = Mic + Internal, 3 = Mute
-            when (audioIndex) {
-                0 -> { // Internal Only
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        // Android 10+ me REMOTE_SUBMIX trick (System apps only, but works for some)
-                        // Ya fir PLAYBACK (AudioSource.PLAYBACK 8)
-                        // As simple fallback we use VOICE_PERFORMANCE ya REMOTE_SUBMIX (8).
-                        mediaRecorder?.setAudioSource(8) // REMOTE_SUBMIX
-                    }
-                }
-                1 -> { // Mic Only
-                    mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
-                }
-                2 -> { // Mic + Internal
-                    // Standard mic captures game sound from speaker if not wearing headphones
-                    mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
-                }
-                3 -> {
-                    // Mute (no audio set)
-                }
+            // FIX: Removed experimental audio sources that crash the app. Standard Mic is used.
+            if (audioIndex != 3) {
+                mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
             }
 
             mediaRecorder?.setVideoSource(MediaRecorder.VideoSource.SURFACE)
@@ -229,7 +210,7 @@ class RecordingService : Service() {
 
             val metrics = resources.displayMetrics
             val scale = when (resIndex) {
-                0 -> 0.4f // 40% resolution (drastic drop in size)
+                0 -> 0.4f // 40% resolution
                 1 -> 0.6f 
                 else -> 1.0f 
             }
@@ -239,10 +220,8 @@ class RecordingService : Service() {
             height -= (height % 16)
             mediaRecorder?.setVideoSize(width, height)
 
-            // FIX: Video Size (Bitrate Logic)
-            // Humne bitrates aur bhi lower kar diye hain compression badhane ke liye.
             val bitrate = when (bitIndex) {
-                0 -> 300 * 1024 // 300 Kbps - Super Low (Approx 2-3MB per min)
+                0 -> 300 * 1024 // 300 Kbps - Super Low
                 1 -> 600 * 1024 
                 2 -> 1000 * 1024
                 3 -> 1500 * 1024
@@ -254,17 +233,12 @@ class RecordingService : Service() {
             val fps = when (fpsIndex) { 0 -> 24; 1 -> 30; else -> 60 }
             mediaRecorder?.setVideoFrameRate(fps)
 
-            // FIX: HEVC (H.265) use karenge compress karne ke liye (Aadhe size me wahi quality)
-            try {
-                mediaRecorder?.setVideoEncoder(MediaRecorder.VideoEncoder.HEVC)
-            } catch (e: Exception) {
-                // Agar phone support nahi karta to purana H.264 par aayega
-                mediaRecorder?.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
-            }
+            // FIX: Reverted to highly compatible H264 to prevent MediaRecorder state corruption.
+            mediaRecorder?.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
 
             if (audioIndex != 3) {
                 mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                mediaRecorder?.setAudioEncodingBitRate(64000) // Lower audio bitrate for size
+                mediaRecorder?.setAudioEncodingBitRate(64000)
                 mediaRecorder?.setAudioSamplingRate(44100)
             }
 
@@ -281,7 +255,7 @@ class RecordingService : Service() {
             true
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(this, "Setup Error: Try changing Audio Setting.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             false
         }
     }
