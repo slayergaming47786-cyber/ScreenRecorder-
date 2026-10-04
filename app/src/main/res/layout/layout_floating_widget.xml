@@ -4,11 +4,22 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_floating"
-    android:paddingHorizontal="16dp"
-    android:paddingVertical="12dp"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="8dp"
     android:orientation="horizontal"
     android:gravity="center"
     android:elevation="8dp">
+
+    <!-- App Band Karne Ka Close Button (X) -->
+    <TextView
+        android:id="@+id/btnClose"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="✖"
+        android:textColor="#9E9E9E"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:paddingEnd="12dp" />
 
     <!-- REC / STOP Text -->
     <TextView
@@ -20,7 +31,7 @@
         android:textStyle="bold"
         android:textSize="16sp"/>
 
-    <!-- Timer (Start me hide rahega) -->
+    <!-- Timer -->
     <Chronometer
         android:id="@+id/timer"
         android:layout_width="wrap_content"
