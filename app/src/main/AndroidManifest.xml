@@ -16,7 +16,7 @@
         android:roundIcon="@drawable/app_icon"
         android:label="Screen Recorder"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        android:theme="@style/Theme.AppCompat.NoActionBar">
 
         <activity
             android:name=".MainActivity"
