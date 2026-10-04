@@ -71,7 +71,6 @@ class RecordingService : Service() {
             val fpsIndex = intent.getIntExtra("fpsIndex", 1)
             val audioIndex = intent.getIntExtra("audioIndex", 0)
 
-            // FIX 1: App khulte hi token lock kar lo taaki timeout ya re-use ka error na aaye
             try {
                 val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
                 mediaProjection = projectionManager.getMediaProjection(resultCode, data!!)
@@ -81,8 +80,8 @@ class RecordingService : Service() {
                         super.onStop()
                         stopRecording()
                         Handler(Looper.getMainLooper()).post {
-                            Toast.makeText(applicationContext, "System stopped the projection.", Toast.LENGTH_SHORT).show()
-                            stopSelf() // Agar system notification se stop kare, toh app band ho jaye
+                            Toast.makeText(applicationContext, "Screen Recording Permission Revoked.", Toast.LENGTH_SHORT).show()
+                            stopSelf() 
                         }
                     }
                 }, Handler(Looper.getMainLooper()))
@@ -195,15 +194,14 @@ class RecordingService : Service() {
             tvAction.setTextColor(android.graphics.Color.parseColor("#F44336"))
             timer.stop()
             timer.visibility = View.GONE
-            // FIX 2: Global message - ye app ke bahar bhi dikhega
-            Toast.makeText(applicationContext, "Video Saved Successfully!", Toast.LENGTH_LONG).show()
+            Toast.makeText(applicationContext, "Video Saved in Movies/Screen Recorder!", Toast.LENGTH_LONG).show()
         }
     }
 
     private fun startRecording(resIndex: Int, bitIndex: Int, fpsIndex: Int, audioIndex: Int): Boolean {
         return try {
             if (mediaProjection == null) {
-                Toast.makeText(applicationContext, "Error: Projection token lost. Please restart.", Toast.LENGTH_LONG).show()
+                Toast.makeText(applicationContext, "Error: System Token Lost. Please click '✖' and start again.", Toast.LENGTH_LONG).show()
                 return false
             }
 
@@ -259,12 +257,19 @@ class RecordingService : Service() {
 
             mediaRecorder?.prepare()
             
-            // Yahan hum pehle se locked mediaProjection use kar rahe hain
-            virtualDisplay = mediaProjection?.createVirtualDisplay("ScreenRecorder",
-                width, height, metrics.densityDpi,
-                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-                mediaRecorder?.surface, null, null
-            )
+            // ANDROID 14 MULTI-RECORDING TRICK
+            if (virtualDisplay == null) {
+                // Pehli baar display create karo
+                virtualDisplay = mediaProjection?.createVirtualDisplay("ScreenRecorder",
+                    width, height, metrics.densityDpi,
+                    DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                    mediaRecorder?.surface, null, null
+                )
+            } else {
+                // Agli baar bina create kiye sirf surface update (swap) kardo
+                virtualDisplay?.resize(width, height, metrics.densityDpi)
+                virtualDisplay?.surface = mediaRecorder?.surface
+            }
 
             mediaRecorder?.start()
             isRecording = true
@@ -277,16 +282,17 @@ class RecordingService : Service() {
     }
 
     private fun stopRecording() {
+        try {
+            // Android 14 Trick: Display engine ko destroy karne ki jagah uska connection tod (null) do
+            virtualDisplay?.surface = null
+        } catch (e: Exception) {}
+
         try { mediaRecorder?.stop() } catch (e: Exception) {}
         try {
             mediaRecorder?.reset()
             mediaRecorder?.release()
             mediaRecorder = null
-            
-            virtualDisplay?.release()
-            virtualDisplay = null
-            
-            // FIX: Yahan mediaProjection?.stop() nahi karenge, taaki woh agli recording ke liye zinda rahe!
+            // DHYAAN DEIN: virtualDisplay?.release() hata diya gaya hai!
         } catch (e: Exception) {}
         isRecording = false
     }
@@ -297,8 +303,10 @@ class RecordingService : Service() {
         if (::floatingView.isInitialized) windowManager.removeView(floatingView)
         if (isRecording) stopRecording()
         
-        // Jab user X (close) dabayega, tabhi app ka token destroy hoga
-        mediaProjection?.stop() 
+        // Jab user khud se '✖' dabayega tab hi final engine band hoga
+        virtualDisplay?.release()
+        virtualDisplay = null
+        mediaProjection?.stop()
         mediaProjection = null
     }
 }
